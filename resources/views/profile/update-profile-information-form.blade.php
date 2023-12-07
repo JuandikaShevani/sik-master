@@ -6,14 +6,24 @@
         <div class="row justify-content-center">
             <div class="col-lg-4">
                 <div class="text-center">
-                    <img src="{{ Storage::disk('public')->url(auth()->user()->path_image ?? '') }}" alt=""
-                        class="img-thumbnail preview-path_image mt-3" width="250">
+                    @if (!is_null(auth()->user()->path_image) && Storage::disk('public')->exists(auth()->user()->path_image))
+                        <img src="{{ Storage::disk('public')->url(auth()->user()->path_image ?? '') }}" alt=""
+                            class="img-thumbnail preview-path_image mt-3" width="250">
+                    @else
+                        <img src="{{ asset('img/man.png') }}" alt=""
+                            class="img-thumbnail preview-path_image mt-3" width="250">
+                    @endif
                 </div>
                 <div class="form-group mt-3">
                     <div class="custom-file">
-                        <input type="file" class="custom-file-input" id="path_image" name="path_image"
-                            onchange="preview('.preview-path_image', this.files[0])">
+                        <input type="file" class="custom-file-input @error('path_image') is-invalid @enderror"
+                            name="path_image" id="path_image"
+                            value="{{ old('path_image') ?? auth()->user()->path_image }}" id="path_image"
+                            name="path_image" onchange="preview('.preview-path_image', this.files[0])">
                         <label for="path_image" class="custom-file-label">Choose File</label>
+                        @error('path_image')
+                            <span class="invalid-feedback">{{ $message }}</span>
+                        @enderror
                     </div>
                 </div>
             </div>
@@ -22,7 +32,8 @@
             <div class="col-lg-4">
                 <div class="form-group">
                     <label for="name">Nama :</label>
-                    <input type="text" class="form-control @error('name') is-invalid @enderror" name="name" id="name" value="{{ old('name') ?? auth()->user()->name }}">
+                    <input type="text" class="form-control @error('name') is-invalid @enderror" name="name"
+                        id="name" value="{{ old('name') ?? auth()->user()->name }}">
                     @error('name')
                         <span class="invalid-feedback">{{ $message }}</span>
                     @enderror
@@ -31,7 +42,8 @@
             <div class="col-lg-4">
                 <div class="form-group">
                     <label for="email">Email :</label>
-                    <input type="text" class="form-control @error('email') is-invalid @enderror" name="email" id="email" value="{{ old('email') ?? auth()->user()->email }}">
+                    <input type="text" class="form-control @error('email') is-invalid @enderror" name="email"
+                        id="email" value="{{ old('email') ?? auth()->user()->email }}">
                     @error('email')
                         <span class="invalid-feedback">{{ $message }}</span>
                     @enderror
@@ -40,7 +52,8 @@
             <div class="col-lg-4">
                 <div class="form-group">
                     <label for="role">Role :</label>
-                    <input type="text" class="form-control @error('role') is-invalid @enderror" name="role" id="role" value="{{ old('role') ?? auth()->user()->role->name }}" disabled>
+                    <input type="text" class="form-control @error('role') is-invalid @enderror" name="role"
+                        id="role" value="{{ old('role') ?? auth()->user()->role->name }}" disabled>
                     @error('role')
                         <span class="invalid-feedback">{{ $message }}</span>
                     @enderror

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DataKematian;
+use App\Models\DataSktm;
 use App\Models\Penduduk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -14,11 +15,8 @@ class DataKematianController extends Controller
      */
     public function index()
     {
-        $penduduk = Penduduk::where('status', 'hidup')
-            ->orWhere('status', 'meninggal')
-            ->orderBy('nama_lengkap')
-            ->get()
-            ->pluck('nama_lengkap', 'id');
+        $penduduk = Penduduk::all()
+            ->where('status', '!=', 'pindah');
 
         return view('kematian.index', compact('penduduk'));
     }
@@ -77,9 +75,19 @@ class DataKematianController extends Controller
 
         $dataKematian = DataKematian::create($request->all());
 
-        $dataKematian = Penduduk::find($request->penduduk_id);
-        $dataKematian->status = 'meninggal';
-        $dataKematian->save();
+        $penduduk = Penduduk::find($dataKematian->penduduk_id);
+        if ($penduduk) {
+            $sktm = DataSktm::where('penduduk_id', $penduduk->id)->first();
+            if ($sktm) {
+                $sktm->delete();
+            }
+        }
+        $penduduk->status = 'meninggal';
+        $penduduk->save();
+
+        // $dataKematian = Penduduk::find($request->penduduk_id);
+        // $dataKematian->status = 'meninggal';
+        // $dataKematian->save();
 
         return response()->json(['data' => $dataKematian, 'message' => 'Data Berhasil Ditambah']);
     }
@@ -120,11 +128,22 @@ class DataKematianController extends Controller
         $pendudukbaru = Penduduk::find($request->penduduk_id);
 
         if ($penduduklama && $pendudukbaru) {
-            $penduduklama->status = 'hidup';
+            $penduduklama->status = 'valid';
             $penduduklama->save();
 
             $pendudukbaru->status = 'meninggal';
             $pendudukbaru->save();
+
+            $sktmlama = DataSktm::where('penduduk_id', $penduduklama->id)->first();
+            $sktmbaru = DataSktm::where('penduduk_id', $pendudukbaru->id)->first();
+
+            if ($sktmlama) {
+                $sktmlama->delete();
+            }
+
+            if ($sktmbaru) {
+                $sktmbaru->delete();
+            }
         }
 
         $dataKematian->update($request->all());
@@ -139,7 +158,7 @@ class DataKematianController extends Controller
         $penduduk = $dataKematian->penduduk;
 
         if ($penduduk) {
-            $penduduk->status = 'hidup';
+            $penduduk->status = 'valid';
             $penduduk->save();
         }
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DataPindah;
+use App\Models\DataSktm;
 use App\Models\Penduduk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -14,11 +15,8 @@ class DataPindahController extends Controller
      */
     public function index()
     {
-        $penduduk = Penduduk::where('status', 'hidup')
-            ->orWhere('status', 'pindah')
-            ->orderBy('nama_lengkap', 'asc')
-            ->get()
-            ->pluck('nama_lengkap', 'id');
+        $penduduk = Penduduk::all()
+            ->where('status', '!=', 'meninggal');
 
         return view('pindah.index', compact('penduduk'));
     }
@@ -75,10 +73,20 @@ class DataPindahController extends Controller
         }
 
         $dataPindah = DataPindah::create($request->all());
+        $penduduk = Penduduk::find($dataPindah->penduduk_id);
+        if ($penduduk) {
+            $sktm = DataSktm::where('penduduk_id', $penduduk->id)->first();
+            if ($sktm) {
+                $sktm->delete();
+            }
+        }
+        $penduduk->status = 'pindah';
+        $penduduk->save();
 
-        $dataPindah = Penduduk::find($request->penduduk_id);
-        $dataPindah->status = 'pindah';
-        $dataPindah->save();
+
+        // $dataPindah = Penduduk::find($request->penduduk_id);
+        // $dataPindah->status = 'pindah';
+        // $dataPindah->save();
 
         return response()->json(['data' => $dataPindah, 'message' => 'Data Berhasil Ditambah!']);
     }
@@ -119,11 +127,22 @@ class DataPindahController extends Controller
         $pendudukbaru = Penduduk::find($request->penduduk_id);
 
         if ($penduduklama && $pendudukbaru) {
-            $penduduklama->status = 'hidup';
+            $penduduklama->status = 'valid';
             $penduduklama->save();
 
             $pendudukbaru->status = 'meninggal';
             $pendudukbaru->save();
+
+            $sktmlama = DataSktm::where('penduduk_id', $penduduklama->id)->first();
+            $sktmbaru = DataSktm::where('penduduk_id', $pendudukbaru->id)->first();
+
+            if ($sktmlama) {
+                $sktmlama->delete();
+            }
+
+            if ($sktmbaru) {
+                $sktmbaru->delete();
+            }
         }
 
         $dataPindah->update($request->all());
@@ -138,7 +157,7 @@ class DataPindahController extends Controller
         $penduduk = $dataPindah->penduduk;
 
         if ($penduduk) {
-            $penduduk->status = 'hidup';
+            $penduduk->status = 'valid';
             $penduduk->save();
         }
 

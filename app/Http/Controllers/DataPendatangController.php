@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DataPendatang;
 use App\Models\Penduduk;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
 
 class DataPendatangController extends Controller
@@ -14,10 +15,8 @@ class DataPendatangController extends Controller
      */
     public function index()
     {
-        $pelapor = Penduduk::where('status', 'hidup')
-            ->orderBy('nama_lengkap')
-            ->get()
-            ->pluck('nama_lengkap', 'id');
+        $pelapor = Penduduk::all()
+            ->where('status', 'valid');
 
         return view('pendatang.index', compact('pelapor'));
     }
@@ -60,7 +59,7 @@ class DataPendatangController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'nik' => 'required|unique:datang_penduduk,nik',
+            'nik' => 'required|unique:datang_penduduk,nik|digits:16',
             'nama_pendatang' => 'required',
             'pelapor_id' => 'required',
             'tanggal_datang' => 'required|date_format:Y-m-d',
@@ -97,7 +96,7 @@ class DataPendatangController extends Controller
     public function update(Request $request, DataPendatang $dataPendatang)
     {
         $validator = Validator::make($request->all(), [
-            'nik' => 'required',
+            'nik' => ['required', 'digits:16', Rule::unique('datang_penduduk')->ignore($dataPendatang->id),],
             'nama_pendatang' => 'required',
             'pelapor_id' => 'required',
             'tanggal_datang' => 'required|date_format:Y-m-d',

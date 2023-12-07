@@ -10,8 +10,8 @@
                 <label for="penduduk_id">Nama Penduduk :</label>
                 <select name="penduduk_id" id="penduduk_id" class="select2 form-control">
                     <option disabled selected>Pilih salah satu</option>
-                    @foreach ($penduduk as $key => $item)
-                        <option value="{{ $key }}">{{ $item }}</option>
+                    @foreach ($penduduk as $item)
+                        <option value="{{ $item->id }}">{{ $item->nik }} - {{ $item->nama_lengkap}}</option>
                     @endforeach
                 </select>
             </div>

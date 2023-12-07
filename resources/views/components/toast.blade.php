@@ -1,15 +1,23 @@
-@push('script')
-@if (session()->has('success'))
-<script>
-     toastr.success('{{ session('message')}}')
-</script>
-@elseif (session()->has('edit'))
-<script>
-    toastr.info('{{ session('message')}}')
-</script>
-@elseif (session()->has('error'))
-<script>
-    toastr.error('{{ session('message')}}')
-</script>
-@endif
+@push('scripts')
+    @if (session()->has('success'))
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: '{{ session('message') }}',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        </script>
+    @elseif ($errors->any())
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                html: '{{ implode('<br>', $errors->all()) }}',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        </script>
+    @endif
 @endpush

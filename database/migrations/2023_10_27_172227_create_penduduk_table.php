@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('penduduk', function (Blueprint $table) {
             $table->id();
             $table->string('nik')->unique();
+            $table->unsignedBigInteger('kartu_keluarga_id');
             $table->string('nama_lengkap');
             $table->enum('jenis_kelamin', ['laki-laki', 'perempuan']);
             $table->text('tempat_lahir');
@@ -32,7 +33,7 @@ return new class extends Migration
             $table->string('nama_ibu');
             $table->string('no_hp')->nullable();  // nullable
             $table->string('path_image')->nullable();  //nullable
-            $table->enum('status', ['hidup', 'meninggal', 'pindah']);
+            $table->enum('status', ['valid', 'meninggal', 'pindah']);
             $table->timestamps();
         });
     }

@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Kartu Keluarga Detail')
+@section('title', 'Detail Data Kartu Keluarga')
 
 @section('breadcrumb')
     @parent
-    <li class="breadcrumb-item active"><a href="{{ route('kartu_keluarga.index')}}">Kartu Keluarga</a></li>
-    <li class="breadcrumb-item active">Kartu Keluarga Detail</li>
+    <li class="breadcrumb-item active"><a href="{{ route('kartu_keluarga.index')}}">Data Kartu Keluarga</a></li>
+    <li class="breadcrumb-item active">Detail Data Kartu Keluarga</li>
 @endsection
 
 @section('content')
@@ -34,13 +34,13 @@
                     <div class="col-lg-3">
                         <div class="form-group">
                             <label for="rt">RT :</label>
-                            <input type="text" class="form-control" value="{{ $kartu_keluarga->rt }}" disabled>
+                            <input type="text" class="form-control" value="{{ '0' . $kartu_keluarga->rt }}" disabled>
                         </div>
                     </div>
                     <div class="col-lg-3">
                         <div class="form-group">
                             <label for="rw">RW :</label>
-                            <input type="text" class="form-control" value="{{ $kartu_keluarga->rw }}" disabled>
+                            <input type="text" class="form-control" value="{{ '0' . $kartu_keluarga->rw }}" disabled>
                         </div>
                     </div>
                     <div class="col-lg-3">
@@ -86,17 +86,19 @@
                 </div>
             </x-card>
 
-            <x-card>
-                <x-table id="detail-keluarga">
-                    <x-slot name="thead">
-                        <th width="5%">No</th>
-                        <th>NIK</th>
-                        <th>Nama Penduduk</th>
-                        <th>Jenis Kelamin</th>
-                        <th>Status Keluarga</th>
-                    </x-slot>
-                </x-table>
-            </x-card>
+            <div class="card">
+                <div class="card-body">
+                    <x-table id="detail-keluarga">
+                        <x-slot name="thead">
+                            <th width="5%">No</th>
+                            <th>NIK</th>
+                            <th>Nama Penduduk</th>
+                            <th>Jenis Kelamin</th>
+                            <th>Status Keluarga</th>
+                        </x-slot>
+                    </x-table>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -106,8 +108,9 @@
 
 @push('scripts')
 <script>
-    $(document).ready(function() {
-        $('#detail-keluarga').DataTable({
+   let table;
+
+   table = $('#detail-keluarga').DataTable({
             processing: true,
             autoWidth: false,
             responsive: true,
@@ -120,6 +123,5 @@
                 {data: 'status_keluarga', name: 'status_keluarga', searchable: false, sortable: false},
             ]
         });
-    });
 </script>
 @endpush

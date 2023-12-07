@@ -25,15 +25,15 @@
                 <label for="pelapor_id">Nama Pelapor :</label>
                 <select name="pelapor_id" id="pelapor_id" class="select2 form-control">
                     <option disabled selected>Pilih salah satu</option>
-                    @foreach ($pelapor as $key => $item)
-                        <option value="{{ $key }}">{{ $item }}</option>
+                    @foreach ($pelapor as $item)
+                        <option value="{{ $item->id }}">{{ $item->nik }} - {{ $item->nama_lengkap }}</option>
                     @endforeach
                 </select>
             </div>
         </div>
         <div class="col-lg-4">
             <div class="form-group">
-                <label for="tanggal_datang">Tanggal Datang :</label>
+                <label for="tanggal_datang">Tanggal Kedatangan :</label>
                 <div class="input-group datepicker" id="tanggal_datang" data-target-input="nearest">
                     <input type="text" name="tanggal_datang" class="form-control datetimepicker-input"
                         data-target="#tanggal_datang" />

@@ -10,8 +10,8 @@ class Penduduk extends Model
 
     protected $table = 'penduduk';
 
-    public function detail_kartu_keluarga()
+    public function kartu_keluarga()
     {
-        return $this->belongsToMany(KartuKeluarga::class, 'detail_kartu_keluarga');
+        return $this->belongsTo(KartuKeluarga::class, 'kartu_keluarga_id', 'id');
     }
 }

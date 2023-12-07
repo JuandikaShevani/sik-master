@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Kartu Keluarga')
+@section('title', 'Data Kartu Keluarga')
 
 @section('breadcrumb')
     @parent
-    <li class="breadcrumb-item active">Kartu Keluarga</li>
+    <li class="breadcrumb-item active">Data Kartu Keluarga</li>
 @endsection
 
 @section('content')
@@ -12,17 +12,19 @@
         <div class="col-lg-12">
             <x-card>
                 <x-slot name="header">
-                    <button onclick="addForm(`{{ route('kartu_keluarga.store') }}`)" class="btn btn-success"><i
-                        class="fas fa-plus-circle"></i> Tambah Data</button>
+                    <button onclick="addForm(`{{ route('kartu_keluarga.store') }}`)" class="btn btn-success"><i class="fas fa-plus-circle"></i> Tambah Data</button>
+                    <button id="delete-multiple" class="btn btn-danger"><i class="fas fa-trash-alt"></i> Hapus Multiple</button>
                 </x-slot>
                 <x-table>
                     <x-slot name="thead">
-                        <th width="5%">No</th>
-                        <th>No Kartu Keluarga</th>
+                        <th width="5%"><input type="checkbox" id="check-all"></th>
+                        <th width="5%">No.</th>
+                        <th>No. Kartu Keluarga</th>
                         <th>Nama Kepala Keluarga</th>
                         <th>Dikeluarkan Tanggal</th>
-                        <th>RT / RW</th>
-                        <th width="17%"><i class="fas fa-cog"></i></th>
+                        <th>Alamat</th>
+                        <th>Jumlah Anggota Keluarga</th>
+                        <th width="16%"><i class="fas fa-cog"></i></th>
                     </x-slot>
                 </x-table>
             </x-card>
@@ -32,11 +34,14 @@
 @includeIf('kartu_keluarga.form')
 @endsection
 
+@includeIf('includes.indoregion')
 @includeIf('includes.dataTable')
 @includeIf('includes.datepicker')
+@includeIf('includes.select2')
 
 @push('scripts')
 <script>
+
     let modal = '#modal-form';
     let table;
 
@@ -44,16 +49,19 @@
         processing: true,
         autoWidth: false,
         responsive: true,
+        ordering: false,
         ajax: {
             url: '{{ route('kartu_keluarga.data')}}',
         },
         columns: [
+            {data: 'checkbox', searchable: false},
             {data: 'DT_RowIndex', searchable: false},
-            {data: 'no_kk', searchable: false, sortable:false},
-            {data: 'nama_kepala_keluarga', searchable: false, sortable: false},
-            {data: 'tanggal_buat', searchable: false, sortable: false},
-            {data: 'rw', searchable:false, sortable:false},
-            {data: 'action', searchable: false, sortable: false}
+            {data: 'no_kk'},
+            {data: 'nama_kepala_keluarga'},
+            {data: 'tanggal_buat', searchable: false},
+            {data: 'alamat', searchable:false},
+            {data: 'jumlah_anggota_kk', searchable: false},
+            {data: 'action', searchable: false}
         ]
     });
 
@@ -76,6 +84,9 @@
                 resetForm(`${modal} form`);
                 loopForm(response.data);
 
+                $('#kecamatan').trigger('change');
+                $('#kabupaten').trigger('change');
+                $('#provinsi').trigger('change');
             })
             .fail(errors => {
                 alert('Tidak dapat menampilkan data');
@@ -83,127 +94,30 @@
             })
     }
 
-    $('[data-dismiss=modal]').on('click', function (e) {
-        $(`${modal} [name=_method]`).val('post');
-    });
-
-    function submitForm(originalForm) {
-        $.post({
-                url: $(originalForm).attr('action'),
-                data: new FormData(originalForm),
-                dataType: 'json',
-                contentType: false,
-                cache: false,
-                processData: false
-        })
-        .done(response => {
-                $(modal).modal('hide');
-                $(`${modal} [name=_method]`).val('post');
-                showAlert(response.message, 'success');
-                table.ajax.reload();
-        })
-        .fail(errors => {
-                if (errors.status == 422) {
-                    loopErrors(errors.responseJSON.errors);
-                    return;
-                }
-                showAlert(errors.responseJSON.message, 'error');
-        });
-    }
-
-    function deleteData(url) {
+    function deleteMultipleItems(selectedIds) {
         Swal.fire({
-            title: 'Konfirmasi Hapus Data!',
-            text: 'Anda yakin ingin menghapus data?',
+            title: 'Anda yakin ingin menghapus data yang dipilih?',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
-            confirmButtonText: 'Ya, hapus data!'
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
         }).then((result) => {
-            if (result.isConfirmed) {
-                $.post(url, {
-                    '_method': 'delete'
-                })
-                .done(response => {
-                    showAlert(response.message, 'error');
-                    table.ajax.reload();
-                })
-                .fail(errors => {
-                    showAlert('Tidak dapat menghapus data');
-                    return;
-                })
-            }
-        })
-    }
-
-    function resetForm(selector) {
-        $(selector)[0].reset();
-
-        $('.form-control, .custom-select, [type=file]').removeClass('is-invalid');
-        $('.invalid-feedback').remove();
-    }
-
-    function loopForm(originalForm) {
-        for (field in originalForm) {
-            if ($(`[name=${field}]`).attr('type') != 'file') {
-                $(`[name=${field}]`).val(originalForm[field]);
-                $('.select').trigger('change');
-            }
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '{{ route('kartu_keluarga.delete-multiple')}}',
+                type: 'DELETE',
+                data: {ids: selectedIds},
+            })
+            .done(function (response) {
+                showAlert(response.message, 'success');
+                table.ajax.reload();
+            })
+            .fail(function (errors) {
+                showAlert('Tidak Dapat Menghapus Data', 'error');
+            });
         }
-    }
-
-    function loopErrors(errors) {
-        $('.invalid-feedback').remove();
-
-        if (errors == undefined) {
-            return;
-        }
-
-        for (error in errors) {
-            $(`[name=${error}]`).addClass('is-invalid');
-
-            if  ($(`[name=${error}]`).hasClass('custom-control-input')) {
-                $(`<span class="error invalid-feedback">${errors[error][0]}</span>`)
-                    .insertAfter($(`[name=${error}]`).next());
-            } else if  ($(`[name=${error}]`).hasClass('datetimepicker-input')) {
-                $(`<span class="error invalid-feedback">${errors[error][0]}</span>`)
-                    .insertAfter($(`[name=${error}]`).next());
-            } else {
-                if ($(`[name=${error}]`).length == 0) {
-                    $(`[name="${error}[]"]`).addClass('is-invalid');
-                    $(`<span class="error invalid-feedback">${errors[error][0]}</span>`)
-                    .insertAfter($(`[name="${error}[]"]`).next());
-                } else {
-                    $(`<span class="error invalid-feedback">${errors[error][0]}</span>`)
-                        .insertAfter($(`[name=${error}]`));
-                }
-            }
-        }
-    }
-
-    function showAlert(message, type) {
-        let title = '';
-        let icon = '';
-        switch (type) {
-            case 'success':
-                title = 'Success';
-                icon = 'success';
-                break;
-            case 'error':
-                title = 'Deleted';
-                icon = 'error';
-                break;
-            default:
-                break;
-        }
-
-        Swal.fire({
-            icon: icon,
-            title: title,
-            text:  message,
-            showConfirmButton: false,
-            timer: 1500
         });
     }
 </script>

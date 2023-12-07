@@ -6,6 +6,7 @@ use App\Models\KartuKeluarga;
 use App\Models\Penduduk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 
@@ -16,21 +17,28 @@ class PendudukController extends Controller
      */
     public function index()
     {
-        $kk = KartuKeluarga::orderBy('no_kk', 'asc')
-            ->get()
-            ->pluck('no_kk', 'id');
+        $kartu_keluarga = KartuKeluarga::all();
 
-        return view('penduduk.index', compact('kk'));
+        return view('penduduk.index', compact('kartu_keluarga'));
     }
 
     public function data()
     {
-        $query = Penduduk::where('status', 'hidup')->get();
+        $query = Penduduk::with('kartu_keluarga')
+            ->where('status', 'valid')
+            ->orderBy('kartu_keluarga_id', 'asc')
+            ->get();
 
         return datatables($query)
             ->addIndexColumn()
-            ->editColumn('tanggal_lahir', function ($query) {
-                return tanggal_indonesia($query->tanggal_lahir);
+            ->addColumn('checkbox', function ($query) {
+                return '<input type="checkbox" class="data-check" data-id="' . $query->id . '" id="checkbox-' . $query->id . '">';
+            })
+            ->editColumn('kartu_keluarga_id', function ($query) {
+                return $query->kartu_keluarga->no_kk . ' - ' . $query->kartu_keluarga->nama_kepala_keluarga;
+            })
+            ->addColumn('ttl', function ($query) {
+                return $query->tempat_lahir . ', ' .  tanggal_indonesia($query->tanggal_lahir);
             })
             ->addColumn('action', function ($query) {
                 return '
@@ -41,7 +49,7 @@ class PendudukController extends Controller
                 </div>
                 ';
             })
-            ->rawColumns(['action', 'path_image', 'tanggal_lahir'])
+            ->rawColumns(['action', 'checkbox'])
             ->escapeColumns([])
             ->make(true);
     }
@@ -60,8 +68,8 @@ class PendudukController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'nik' => 'required|unique:penduduk,nik',
-            'kartu_keluarga' => 'required|array',
+            'nik' => 'required|unique:penduduk,nik|digits:16',
+            'kartu_keluarga_id' => 'required',
             'nama_lengkap' => 'required',
             'usia' => 'nullable',
             'jenis_kelamin' => 'required',
@@ -88,23 +96,21 @@ class PendudukController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $data = $request->except('path_image', 'kartu_keluarga');
+        $data = $request->except('path_image');
 
         if ($request->hasFile('path_image')) {
-            $data['path_image'] = upload('penduduk', $request->file('path_image'), 'penduduk');
+            $data['path_image'] = upload('penduduk', $request->file('path_image'), 'penduduk', 300, 300);
         } else {
-            $data['path_image'] = 'penduduk/penduduk_20231107112014.png';
+            $imageBy = $request->input('jenis_kelamin');
+            $data['path_image'] = $imageBy == 'laki-laki' ? 'img/man.png' : 'img/woman.png';
         }
 
         $tanggal_lahir = $request->input('tanggal_lahir');
         $today = now();
         $data['usia'] = Carbon::parse($tanggal_lahir)->diffInYears($today);
-
-        $data['status'] = 'hidup';
+        $data['status'] = 'valid';
 
         $penduduk = Penduduk::create($data);
-        $penduduk->detail_kartu_keluarga()->attach($request->kartu_keluarga);
-
         return response()->json(['data' => $penduduk, 'message' => 'Data Berhasil Ditambah!']);
     }
 
@@ -114,8 +120,14 @@ class PendudukController extends Controller
 
     public function show(Penduduk $penduduk)
     {
-        $penduduk->kartu_keluarga = $penduduk->detail_kartu_keluarga;
-        $penduduk->path_image = Storage::disk('public')->url($penduduk->path_image);
+        $imageName = $penduduk->path_image;
+        $imgPath = public_path($imageName);
+
+        if (file_exists($imgPath)) {
+            $penduduk->path_image = asset($imageName);
+        } else {
+            $penduduk->path_image = Storage::disk('public')->url($imageName);
+        }
 
         return response()->json(['data' => $penduduk]);
     }
@@ -129,7 +141,6 @@ class PendudukController extends Controller
     public function detail($id)
     {
         $penduduk = Penduduk::findOrFail($id);
-
         return view('penduduk.detail', compact('penduduk'));
     }
 
@@ -147,8 +158,8 @@ class PendudukController extends Controller
     public function update(Request $request, Penduduk $penduduk)
     {
         $validator = Validator::make($request->all(), [
-            'nik' => 'required',
-            'kartu_keluarga' => 'required|array',
+            'nik' => ['required', 'digits:16', Rule::unique('penduduk')->ignore($penduduk->id),],
+            'kartu_keluarga_id' => 'required',
             'nama_lengkap' => 'required',
             'usia' => 'nullable',
             'jenis_kelamin' => 'required',
@@ -175,22 +186,19 @@ class PendudukController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $data = $request->except('path_image', 'kartu_keluarga');
-        $data['status'] = 'hidup';
+        $data = $request->except('path_image');
         $tanggal_lahir = $request->input('tanggal_lahir');
-        $today = now();
-        $data['usia'] = Carbon::parse($tanggal_lahir)->diffInYears($today);
+        $tangga_sekarang = now();
+        $data['usia'] = Carbon::parse($tanggal_lahir)->diffInYears($tangga_sekarang);
 
         if ($request->hasFile('path_image')) {
             if (Storage::disk('public')->exists($penduduk->path_image)) {
                 Storage::disk('public')->delete($penduduk->path_image);
             }
-            $data['path_image'] = upload('penduduk', $request->file('path_image'), 'penduduk');
+            $data['path_image'] = upload('penduduk', $request->file('path_image'), 'penduduk', 300, 300);
         }
 
         $penduduk->update($data);
-        $penduduk->detail_kartu_keluarga()->sync($request->kartu_keluarga);
-
         return response()->json(['data' => $penduduk, 'message' => 'Data Berhasil Diupdate']);
     }
 
@@ -204,7 +212,20 @@ class PendudukController extends Controller
         }
 
         $penduduk->delete();
+        return response()->json(['data' => null, 'message' => 'Data Berhasil Dihapus!']);
+    }
 
+    public function deleteMultiple(Request $request, Penduduk $penduduk)
+    {
+        $ids = $request->input('ids');
+
+        foreach ($penduduk->whereIn('id', $ids)->get() as $data) {
+            if (!is_null($data->path_image) && Storage::disk('public')->exists($data->path_image)) {
+                Storage::disk('public')->delete($data->path_image);
+            }
+        }
+
+        $penduduk->whereIn('id', $ids)->delete();
         return response()->json(['data' => null, 'message' => 'Data Berhasil Dihapus!']);
     }
 }

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\KartuKeluarga;
+use App\Models\Penduduk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class KartuKeluargaController extends Controller
 {
@@ -16,14 +18,31 @@ class KartuKeluargaController extends Controller
         return view('kartu_keluarga.index');
     }
 
-    public function data(Request $request)
+    public function data()
     {
-        $query = KartuKeluarga::orderBy('no_kk', 'desc')->get();
+        $query = KartuKeluarga::withCount('penduduk')
+            ->orderBy('no_kk', 'asc')->get();
 
         return datatables($query)
             ->addIndexColumn()
-            ->editColumn('rw', function ($query) {
-                return '0' . $query->rt . ' / ' . '0' . $query->rw;
+            ->addColumn('checkbox', function ($query) {
+                return '<input type="checkbox" class="data-check" data-id="' . $query->id . '" id="checkbox-' . $query->id . '">';
+            })
+            ->addColumn('jumlah_anggota_kk', function ($query) {
+                return $query->penduduk_count;
+            })
+            ->editColumn('tanggal_buat', function ($query) {
+                return tanggal_indonesia($query->tanggal_buat);
+            })
+            ->editColumn('alamat', function ($query) {
+                return implode(' ', [
+                    $query->alamat,
+                    'RT',
+                    '0' . $query->rt,
+                    '/',
+                    'RW',
+                    '0' . $query->rw,
+                ]);
             })
             ->addColumn('action', function ($query) {
                 return '
@@ -34,7 +53,7 @@ class KartuKeluargaController extends Controller
                 </div>
                 ';
             })
-            ->rawColumns(['action'])
+            ->rawColumns(['action', 'checkbox'])
             ->escapeColumns([])
             ->make(true);
     }
@@ -47,10 +66,9 @@ class KartuKeluargaController extends Controller
 
     public function getPendudukData(KartuKeluarga $kartu_keluarga)
     {
-        $pendudukData = $kartu_keluarga->detail_kartu_keluarga;
+        $pendudukData = $kartu_keluarga->penduduk;
 
-        return datatables()
-            ->of($pendudukData)
+        return datatables($pendudukData)
             ->addIndexColumn()
             ->make(true);
     }
@@ -72,7 +90,7 @@ class KartuKeluargaController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'no_kk' => 'required|unique:kartu_keluarga,no_kk',
+            'no_kk' => 'required|unique:kartu_keluarga,no_kk|digits:16',
             'nama_kepala_keluarga' => 'required',
             'alamat' => 'required',
             'rt' => 'required|integer',
@@ -90,6 +108,7 @@ class KartuKeluargaController extends Controller
         }
 
         $kartu_keluarga = KartuKeluarga::create($request->all());
+
         return response()->json(['data' => $kartu_keluarga, 'message' => 'Data Berhasil Ditambah']);
     }
 
@@ -122,12 +141,12 @@ class KartuKeluargaController extends Controller
     public function update(Request $request, KartuKeluarga $kartu_keluarga)
     {
         $validator = Validator::make($request->all(), [
-            'no_kk' => 'required',
+            'no_kk' => ['required', 'digits:16', Rule::unique('kartu_keluarga')->ignore($kartu_keluarga->id),],
             'nama_kepala_keluarga' => 'required',
             'alamat' => 'required',
             'rt' => 'required|integer',
             'rw' => 'required|integer',
-            'kode_pos' => 'required|integer',
+            'kode_pos' => 'required|digits:5',
             'kelurahan' => 'required',
             'kecamatan' => 'required',
             'kabupaten' => 'required',
@@ -151,4 +170,51 @@ class KartuKeluargaController extends Controller
         $kartu_keluarga->delete();
         return response()->json(['data' => null, 'message' => 'Data Berhasil Dihapus']);
     }
+
+    public function deleteMultiple(Request $request, KartuKeluarga $kartu_keluarga)
+    {
+        $ids = $request->input('ids');
+        $kartu_keluarga->whereIn('id', $ids)->delete();
+
+        return response()->json(['success' => true, 'message' => 'Data Berhasil Dihapus!']);
+    }
+
+    // public function getDistricts()
+    // {
+    //     $districts = District::all();
+    //     return response()->json($districts);
+    // }
+
+    // public function getRegencies()
+    // {
+    //     $regencies = Regency::all();
+    //     return response()->json($regencies);
+    // }
+
+    // public function getProvinces()
+    // {
+    //     $provinces = Province::all();
+    //     return response()->json($provinces);
+    // }
+
+    // public function getProvince(Request $request)
+    // {
+    //     $regency = Regency::find($request->regency_id);
+    //     $province = $regency->province;
+
+    //     return response()->json(['province' => $province]);
+    // }
+
+    // public function getRegencyProvince(Request $request)
+    // {
+    //     $district = District::find($request->district_id);
+    //     $regency = $district->regency;
+    //     $province = $regency->province;
+
+    //     return response()->json([
+    //         'regency' => $regency,
+    //         'province' => $province,
+    //     ]);
+    //     // return response()->json(['regency' => $regency, 'province' => $province]);
+    // }
 }

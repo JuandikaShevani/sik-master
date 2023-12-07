@@ -14,9 +14,7 @@ class DataKelahiranController extends Controller
      */
     public function index()
     {
-        $kartu_keluarga = KartuKeluarga::orderBy('no_kk')
-            ->get()
-            ->pluck('no_kk', 'id');
+        $kartu_keluarga = KartuKeluarga::all();
 
         return view('kelahiran.index', compact('kartu_keluarga'));
     }
@@ -31,7 +29,7 @@ class DataKelahiranController extends Controller
                 return tanggal_indonesia($query->tanggal_lahir);
             })
             ->editColumn('kartu_keluarga_id', function ($query) {
-                return $query->kartu_keluarga->no_kk;
+                return $query->kartu_keluarga->no_kk . ' - ' . $query->kartu_keluarga->nama_kepala_keluarga;
             })
             ->addColumn('action', function ($query) {
                 return '

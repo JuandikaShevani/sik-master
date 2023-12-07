@@ -46,8 +46,8 @@
                 <label for="kartu_keluarga_id">No. Kartu Keluarga:</label>
                 <select name="kartu_keluarga_id" id="kartu_keluarga_id" class="select2">
                     <option disabled selected>Pilih salah satu</option>
-                    @foreach ($kartu_keluarga as $key => $item)
-                        <option value="{{ $key }}">{{ $item }}</option>
+                    @foreach ($kartu_keluarga as $item)
+                        <option value="{{ $item->id }}">{{ $item->no_kk }} - {{ $item->nama_kepala_keluarga }}</option>
                     @endforeach
                 </select>
             </div>

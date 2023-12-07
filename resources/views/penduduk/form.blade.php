@@ -14,10 +14,11 @@
         <div class="col-lg-6">
             <div class="form-group">
                 <label for="kartu_keluarga">No. Kartu Keluarga:</label>
-                <select name="kartu_keluarga[]" id="kartu_keluarga" class="select2">
-                    <option disabled selected>Pilih salah satu</option>
-                    @foreach ($kk as $key => $item)
-                        <option value="{{ $key }}">{{ $item }}</option>
+                <select name="kartu_keluarga_id" id="kartu_keluarga_id" class="select2">
+                    <option disabled selected>Pilih Salah Satu</option>
+                    @foreach ($kartu_keluarga as $item)
+                        <option value="{{ $item->id }}">{{ $item->no_kk }} - {{ $item->nama_kepala_keluarga }}
+                        </option>
                     @endforeach
                 </select>
             </div>
@@ -34,7 +35,7 @@
             <div class="form-group">
                 <label for="jenis_kelamin">Jenis Kelamin :</label>
                 <select name="jenis_kelamin" id="jenis_kelamin" class="custom-select">
-                    <option disabled selected>Pilih salah satu</option>
+                    <option disabled selected>Pilih Salah Satu</option>
                     <option value="laki-laki">Laki-laki</option>
                     <option value="perempuan">Perempuan</option>
                 </select>
@@ -65,12 +66,12 @@
             <div class="form-group">
                 <label for="agama">Agama :</label>
                 <select name="agama" id="agama" class="custom-select">
-                    <option selected="" disabled="">Pilih salah satu</option>
+                    <option selected="" disabled="">Pilih Salah Satu</option>
                     <option value="Islam">Islam</option>
                     <option value="Kristen Protestan">Kristen Protestan</option>
                     <option value="Kristen Katolik">Kristen Katolik</option>
                     <option value="Hindu">Hindu</option>
-                    <option value="Budha">Budha</option>
+                    <option value="Buddha">Buddha</option>
                     <option value="Khonghucu">Khonghucu</option>
                 </select>
             </div>
@@ -93,7 +94,7 @@
             <div class="form-group">
                 <label for="golongan_darah">Golongan Darah :</label>
                 <select name="golongan_darah" id="golongan_darah" class="custom-select">
-                    <option selected="" disabled="">Pilih salah satu</option>
+                    <option selected="" disabled="">Pilih Salah Satu</option>
                     <option value="A">A</option>
                     <option value="B">B</option>
                     <option value="AB">AB</option>
@@ -108,7 +109,7 @@
             <div class="form-group">
                 <label for="status_perkawinan">Status Perkawinan :</label>
                 <select name="status_perkawinan" id="status_perkawinan" class="custom-select">
-                    <option selected="" disabled="">Pilih salah satu</option>
+                    <option selected="" disabled="">Pilih Salah Satu</option>
                     <option value="Belum Kawin">Belum Kawin</option>
                     <option value="Kawin Tercatat">Kawin Tercatat</option>
                     <option value="Kawin Tidak Tercatat">Kawin Tidak Tercatat</option>
@@ -133,7 +134,7 @@
             <div class="form-group">
                 <label for="status_keluarga">Status Hubungan Dalam Keluarga :</label>
                 <select name="status_keluarga" id="status_keluarga" class="custom-select">
-                    <option selected="" disabled="">Pilih salah satu</option>
+                    <option selected="" disabled="">Pilih Salah Satu</option>
                     <option value="Kepala Keluarga">Kepala Keluarga</option>
                     <option value="Suami">Suami</option>
                     <option value="Istri">Istri</option>
@@ -192,7 +193,7 @@
                 <label for="no_hp">* No. HP :</label>
                 <div class="input-group mb-3">
                     <div class="input-group-prepend">
-                      <span class="input-group-text">+62</span>
+                        <span class="input-group-text">+62</span>
                     </div>
                     <input type="text" name="no_hp" class="form-control">
                 </div>

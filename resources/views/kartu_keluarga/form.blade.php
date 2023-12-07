@@ -1,6 +1,6 @@
 <x-modal size="modal-xl" data-backdrop="static" data-keyboard="false">
     <x-slot name="title">
-        Tambah Kartu Keluarga
+        Tambah Data Kartu Keluarga
     </x-slot>
 
     @method('post')
@@ -58,7 +58,7 @@
     <div class="row">
         <div class="col-lg-6">
             <div class="form-group">
-                <label for="kelurahan">Desa/Kelurahan :</label>
+                <label for="kelurahan">Desa / Kelurahan :</label>
                 <input type="text" name="kelurahan" class="form-control">
             </div>
         </div>
@@ -66,13 +66,16 @@
             <div class="form-group">
                 <label for="kecamatan">Kecamatan :</label>
                 <input type="text" name="kecamatan" class="form-control">
+                {{-- <select name="kecamatan" id="kecamatan" class="select2">
+                    <option disabled selected>Pilih salah satu</option>
+                </select> --}}
             </div>
         </div>
     </div>
     <div class="row">
         <div class="col-lg-6">
             <div class="form-group">
-                <label for="kabupaten">Kabupaten/Kota :</label>
+                <label for="kabupaten">Kabupaten / Kota :</label>
                 <input type="text" name="kabupaten" class="form-control">
             </div>
         </div>

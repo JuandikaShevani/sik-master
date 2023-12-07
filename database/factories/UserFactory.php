@@ -33,7 +33,7 @@ class UserFactory extends Factory
             'two_factor_recovery_codes' => null,
             'remember_token' => Str::random(10),
             'role_id' => 2,
-            'profile_photo_path' => null,
+            'path_image' => null,
             'current_team_id' => null,
         ];
     }

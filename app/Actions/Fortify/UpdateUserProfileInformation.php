@@ -20,7 +20,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         $validated = Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'path_image' => ['nullable', 'mimes:jpg,jpeg,png,svg', 'max:1024'],
+            'path_image' => ['nullable', 'mimes:jpg,jpeg,png,svg', 'max:2024'],
         ]);
 
         if ($validated->fails()) {
@@ -28,16 +28,15 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         }
 
         if (isset($input['path_image'])) {
-            $input['path_image'] = upload('user', $input['path_image'], 'user');
+            $input['path_image'] = upload('user', $input['path_image'], 'user', 300, 300);
         }
 
         $user->update($input);
 
-        // $user->forceFill([
-        //     'name' => $input['name'],
-        //     'email' => $input['email'],
-        //     'path_image' => $input['path_image'],
-        // ])->save();
+        return back()->with([
+            'success' => true,
+            'message' => 'Pengaturan Berhasil Diubah!'
+        ]);
     }
 
     /**

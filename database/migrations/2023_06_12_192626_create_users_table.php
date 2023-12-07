@@ -19,9 +19,8 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->unsignedBigInteger('role_id');
-            // $table->string('npwp')->index();
             $table->foreignId('current_team_id')->nullable();
-            $table->string('profile_photo_path', 2048)->nullable();
+            $table->string('path_image', 2048)->nullable();
             $table->timestamps();
         });
     }

@@ -1,18 +1,38 @@
 <?php
 
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Facades\Image;
+
+// if (!function_exists('upload')) {
+//     function upload($directory, $file, $filename = "")
+//     {
+//         $extension = $file->getClientOriginalExtension();
+//         $filename = "{$filename}_" . date('Ymdhis') . ".{$extension}";
+
+//         Storage::disk('public')->putFileAs("/$directory", $file, $filename);
+
+//         return "/$directory/$filename";
+//     }
+// }
 
 if (!function_exists('upload')) {
-    function upload($directory, $file, $filename = "")
+    function upload($directory, $file, $filename = "", $width = null, $height = null)
     {
         $extension = $file->getClientOriginalExtension();
         $filename = "{$filename}_" . date('Ymdhis') . ".{$extension}";
 
-        Storage::disk('public')->putFileAs("/$directory", $file, $filename);
+        $image = Image::make($file);
+
+        if ($width !== null && $height !== null) {
+            $image->fit($width, $height);
+        }
+
+        Storage::disk('public')->put("/$directory/$filename", $image->encode());
 
         return "/$directory/$filename";
     }
 }
+
 
 if (!function_exists('tanggal_indonesia')) {
     function tanggal_indonesia($tgl, $tampil_hari = false)

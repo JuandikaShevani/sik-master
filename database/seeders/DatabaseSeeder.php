@@ -23,6 +23,8 @@ class DatabaseSeeder extends Seeder
             RoleTableSeeder::class,
             UserTableSeeder::class,
             SettingTableSeeder::class,
+            KartuKeluargaTableSeeder::class,
+            PendudukTableSeeder::class,
         ]);
     }
 }

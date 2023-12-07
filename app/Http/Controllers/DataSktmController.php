@@ -14,9 +14,8 @@ class DataSktmController extends Controller
      */
     public function index()
     {
-        $penduduk = Penduduk::where('status', 'hidup')
-            ->orderBy('nama_lengkap', 'asc')
-            ->get()->pluck('nama_lengkap', 'id');
+        $penduduk = Penduduk::all()
+            ->where('status', 'valid');
 
         return view('sktm.index', compact('penduduk'));
     }

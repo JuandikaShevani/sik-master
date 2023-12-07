@@ -16,7 +16,7 @@ return new class extends Migration
                 ->references('id')
                 ->on('kartu_keluarga')
                 ->onUpdate('cascade')
-                ->onDelete('restrict');
+                ->onDelete('cascade');
         });
     }
 

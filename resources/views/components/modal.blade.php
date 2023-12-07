@@ -53,9 +53,9 @@ $maxWidth = [
         <div class="modal-content">
             <form method="{{ isset($method) ? $method : 'post' }}">
                 @isset($title)
-                <div class="modal-header">
+                <div class="modal-header bg-success">
                     <h5 class="modal-title">{{ $title }}</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>

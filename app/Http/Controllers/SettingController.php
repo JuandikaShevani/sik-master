@@ -8,55 +8,20 @@ use Illuminate\Support\Facades\Storage;
 
 class SettingController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $setting = Setting::first();
+
         return view('setting.index', compact('setting'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Setting $setting)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Setting $setting)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Setting $setting)
     {
         $rules = [
-            'path_image'    => 'nullable|mimes:png,jpg,jpeg,svg|max:2058',
-            'nama_aplikasi' => 'required|max:10',
+            'nama_aplikasi' => 'required',
+            'email'         => 'nullable',
+            'deskripsi_singkat' => 'nullable',
+            'no_hp'         => 'nullable|integer',
             'profil'        => 'nullable',
             'alamat'        => 'nullable',
             'kelurahan'     => 'nullable',
@@ -68,34 +33,51 @@ class SettingController extends Controller
 
         if ($request->has('pills') && $request->pills == 'logo') {
             $rules = [
-                'path_image'        => 'nullable|mimes:png,jpeg,jpg,svg|max:2048',
+                'path_image'     => 'nullable|mimes:png,jpeg,jpg|max:2048',
+                'path_image_bg'  => 'nullable|mimes:png,jpeg,jpg|max:5048',
+                'path_image_bg2' => 'nullable|mimes:png,jpeg,jpg|max:5048',
             ];
         }
 
         $this->validate($request, $rules);
 
-        $data = $request->except('path_image');
+        $data = $request->except('path_image', 'path_image_bg', 'path_image_bg2');
 
         if ($request->hasFile('path_image')) {
-            if (Storage::disk('public')->exists($setting->path_image)) {
-                Storage::disk('public')->delete($setting->path_image);
+            if (!is_null($setting->path_image)) {
+                if (Storage::disk('public')->exists($setting->path_image)) {
+                    Storage::disk('public')->delete($setting->path_image);
+                }
             }
-            $data['path_image'] = upload('setting', $request->file('path_image'), 'setting');
+
+            $data['path_image'] = upload('setting', $request->file('path_image'), 'setting', 300, 300);
+        }
+
+        if ($request->hasFile('path_image_bg')) {
+            if (!is_null($setting->path_image_bg)) {
+                if (Storage::disk('public')->exists($setting->path_image_bg)) {
+                    Storage::disk('public')->delete($setting->path_image_bg);
+                }
+            }
+
+            $data['path_image_bg'] = upload('setting', $request->file('path_image_bg'), 'setting');
+        }
+
+        if ($request->hasFile('path_image_bg2')) {
+            if (!is_null($setting->path_image_bg2)) {
+                if (Storage::disk('public')->exists($setting->path_image_bg2)) {
+                    Storage::disk('public')->delete($setting->path_image_bg2);
+                }
+            }
+
+            $data['path_image_bg2'] = upload('setting', $request->file('path_image_bg2'), 'setting');
         }
 
         $setting->update($data);
 
         return back()->with([
-            'message' => 'Setting update sucessfully',
-            'success' => true
+            'success' => true,
+            'message' => 'Pengaturan Berhasil Diubah!'
         ]);
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Setting $setting)
-    {
-        //
     }
 }
